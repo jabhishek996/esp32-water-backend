@@ -17,14 +17,18 @@ const db = mysql.createConnection({
   port: 3306,
 });
 
-// 🔌 Connect to DB
-db.connect((err) => {
-  if (err) {
-    console.error('❌ Database connection failed:', err);
-    return;
+// 🔌 Function to reconnect to MySQL if the connection is lost
+function ensureConnection() {
+  if (db.state === 'disconnected') {
+    db.connect((err) => {
+      if (err) {
+        console.error('❌ Failed to reconnect to MySQL:', err);
+      } else {
+        console.log('✅ Reconnected to MySQL');
+      }
+    });
   }
-  console.log('✅ Connected to MySQL database!');
-});
+}
 
 // 🌊 In-memory store for latest data
 let lastData = { distance: 0, level: 0, timestamp: null };
@@ -41,8 +45,10 @@ app.post('/api/water-level', (req, res) => {
   }
 });
 
-// 🕒 Scheduled logging every 30 minutes
+// 🕒 Scheduled logging every 5 minutes
 setInterval(() => {
+  ensureConnection();  // Ensure the connection is active before the insert
+
   if (lastData.timestamp) {
     const query = 'INSERT INTO water_data (distance, level, timestamp) VALUES (?, ?, ?)';
     db.query(query, [lastData.distance, lastData.level, new Date()], (err) => {
@@ -53,7 +59,7 @@ setInterval(() => {
       }
     });
   }
-}, 5 * 60 * 1000); // 30 minutes
+}, 5 * 60 * 1000); // 5 minutes interval
 
 // 📤 GET: Latest single reading
 app.get('/api/water-level', (req, res) => {
