@@ -47,7 +47,7 @@ app.post('/api/water-level', (req, res) => {
 
 // 🕒 Scheduled logging every 5 minutes
 setInterval(() => {
-  ensureConnection();  // Ensure the connection is active before the insert
+  ensureConnection();
 
   if (lastData.timestamp) {
     const query = 'INSERT INTO water_data (distance, level, timestamp) VALUES (?, ?, ?)';
@@ -59,16 +59,38 @@ setInterval(() => {
       }
     });
   }
-}, 5 * 60 * 1000); // 5 minutes interval
+}, 5 * 60 * 1000);
 
 // 📤 GET: Latest single reading
 app.get('/api/water-level', (req, res) => {
   res.json(lastData);
 });
 
-// 📈 GET: All historical data
+// 📈 GET: Historical data with optional range (1d, 7d, 30d)
 app.get('/api/water-data-history', (req, res) => {
-  const query = 'SELECT * FROM water_data ORDER BY timestamp DESC';
+  const range = req.query.range || '1d';
+  let interval;
+
+  switch (range) {
+    case '1d':
+      interval = '1 DAY';
+      break;
+    case '7d':
+      interval = '7 DAY';
+      break;
+    case '30d':
+      interval = '30 DAY';
+      break;
+    default:
+      interval = '1 DAY';
+  }
+
+  const query = `
+    SELECT * FROM water_data
+    WHERE timestamp >= NOW() - INTERVAL ${interval}
+    ORDER BY timestamp DESC
+  `;
+
   db.query(query, (err, results) => {
     if (err) {
       console.error('❌ Failed to fetch history:', err);
