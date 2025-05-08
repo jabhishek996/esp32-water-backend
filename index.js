@@ -8,13 +8,17 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// Temporary store (or connect DB later)
-let lastData = { distance: 0, level: 0 };
+// Store with timestamp
+let lastData = { distance: 0, level: 0, timestamp: null };
 
 app.post('/api/water-level', (req, res) => {
   const { distance, level } = req.body;
   if (typeof distance === 'number' && typeof level === 'number') {
-    lastData = { distance, level };
+    lastData = {
+      distance,
+      level,
+      timestamp: new Date().toISOString() // Add current timestamp
+    };
     console.log('📩 Data received:', lastData);
     res.status(200).json({ message: 'Data received successfully' });
   } else {
