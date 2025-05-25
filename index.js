@@ -1,34 +1,11 @@
 import express from 'express';
 import cors from 'cors';
-import mysql from 'mysql2';
 
 const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
-
-// ✅ MySQL connection setup
-const db = mysql.createConnection({
-  host: 'sql12.freesqldatabase.com',
-  user: 'sql12776790',
-  password: 'aI6SuVEjEW',
-  database: 'sql12776790',
-  port: 3306,
-});
-
-// 🔌 Function to reconnect to MySQL if the connection is lost
-function ensureConnection() {
-  if (db.state === 'disconnected') {
-    db.connect((err) => {
-      if (err) {
-        console.error('❌ Failed to reconnect to MySQL:', err);
-      } else {
-        console.log('✅ Reconnected to MySQL');
-      }
-    });
-  }
-}
 
 // 🌊 In-memory store for latest data
 let lastData = { distance: 0, level: 0, timestamp: null };
@@ -45,60 +22,9 @@ app.post('/api/water-level', (req, res) => {
   }
 });
 
-// 🕒 Scheduled logging every 5 minutes
-setInterval(() => {
-  ensureConnection();
-
-  if (lastData.timestamp) {
-    const query = 'INSERT INTO water_data (distance, level, timestamp) VALUES (?, ?, ?)';
-    db.query(query, [lastData.distance, lastData.level, new Date()], (err) => {
-      if (err) {
-        console.error('❌ Scheduled insert failed:', err);
-      } else {
-        console.log('🕒 Scheduled data inserted at', new Date().toLocaleString());
-      }
-    });
-  }
-}, 5 * 60 * 1000);
-
 // 📤 GET: Latest single reading
 app.get('/api/water-level', (req, res) => {
   res.json(lastData);
-});
-
-// 📈 GET: Historical data with optional range (1d, 7d, 30d)
-app.get('/api/water-data-history', (req, res) => {
-  const range = req.query.range || '1d';
-  let interval;
-
-  switch (range) {
-    case '1d':
-      interval = '1 DAY';
-      break;
-    case '7d':
-      interval = '7 DAY';
-      break;
-    case '30d':
-      interval = '30 DAY';
-      break;
-    default:
-      interval = '1 DAY';
-  }
-
-  const query = `
-    SELECT * FROM water_data
-    WHERE timestamp >= NOW() - INTERVAL ${interval}
-    ORDER BY timestamp DESC
-  `;
-
-  db.query(query, (err, results) => {
-    if (err) {
-      console.error('❌ Failed to fetch history:', err);
-      res.status(500).json({ error: 'Failed to fetch data' });
-      return;
-    }
-    res.json(results);
-  });
 });
 
 // 🚀 Start server
