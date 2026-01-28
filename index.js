@@ -36,7 +36,7 @@ let hasCalled = false; // Prevent duplicate calls
 
 // Twilio credentials (use environment variables for safety!)
 const accountSid = 'AC8e592b16401c28a298844d0a7614a6ad';
-const authToken = '3bd6fd6cd47fe8ee28a88b6de6c02698';
+const authToken = 'ec475be58c49312e5d07ee0f81958996';
 const client = twilio(accountSid, authToken);
 const flowSid = 'FW3d089e7d66c44a13177f00ad892744f2';
 const toNumber = '+919423287988';
