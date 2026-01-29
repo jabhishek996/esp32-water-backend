@@ -22,6 +22,14 @@ const waterLevelSchema = new mongoose.Schema({
     default: Date.now
   }
 });
+
+waterLevelSchema.index(
+  { timestamp: 1 },
+  { expireAfterSeconds: 15 * 24 * 60 * 60 }
+);
+
+
+
 const WaterLevel = mongoose.model('WaterLevel', waterLevelSchema);
 
 // 🌐 App setup
