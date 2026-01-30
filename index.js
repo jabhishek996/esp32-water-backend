@@ -43,8 +43,8 @@ let lastData = { distance: 0, level: 0, tankFull: false, timestamp: null };
 let hasCalled = false; // Prevent duplicate calls
 
 // Twilio credentials (use environment variables for safety!)
-const accountSid = 'AC8e592b16401c28a298844d0a7614a6ad';
-const authToken = 'ec475be58c49312e5d07ee0f81958996';
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
 const client = twilio(accountSid, authToken);
 const flowSid = 'FW3d089e7d66c44a13177f00ad892744f2';
 const toNumber = '+919423287988';
