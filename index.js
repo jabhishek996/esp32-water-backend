@@ -199,15 +199,35 @@ app.post('/api/water-level', async (req, res) => {
 // 📤 GET: Latest Reading
 // =======================
 
+// app.get('/api/water-level', (req, res) => {
+
+//   if (!lastData.timestamp) {
+//     return res.status(404).json({ message: 'No data available yet' });
+//   }
+
+//   res.json(lastData);
+// });
 app.get('/api/water-level', (req, res) => {
 
   if (!lastData.timestamp) {
     return res.status(404).json({ message: 'No data available yet' });
   }
 
-  res.json(lastData);
-});
+  const now = Date.now();
+  const lastSeen = new Date(lastData.timestamp).getTime();
 
+  const diffSeconds = (now - lastSeen) / 1000;
+
+  const deviceStatus = diffSeconds < 20 ? "online" : "offline";
+
+  res.json({
+    distance: lastData.distance,
+    level: lastData.level,
+    tankFull: lastData.tankFull,
+    timestamp: lastData.timestamp,
+    deviceStatus
+  });
+});
 
 // =======================
 // 📊 GET: History
