@@ -1,0 +1,1 @@
+echo firebase-service-account.json >> .gitignore
