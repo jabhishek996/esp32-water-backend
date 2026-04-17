@@ -198,6 +198,14 @@ app.post('/api/water-level', async (req, res) => {
       }
 
       hasCalled = true;
+      // ✅ SAVE TANK FULL EVENT (avoid duplicate within 5 min)
+const recentEvent = await TankFullEvent.findOne({
+  timestamp: { $gte: new Date(Date.now() - 5 * 60 * 1000) }
+});
+
+if (!recentEvent) {
+  await new TankFullEvent({ timestamp }).save();
+}
     }
 
     if (!tankFull) hasCalled = false;
