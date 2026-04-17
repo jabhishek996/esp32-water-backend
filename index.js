@@ -105,7 +105,7 @@ let lastData = {
 };
 
 let hasCalled = false;
-let lowAlertSent = false;
+let  lowAlertSent = false;
 
 // =======================
 // 🔔 TWILIO SETUP
@@ -222,8 +222,8 @@ if (!recentEvent) {
         await admin.messaging().sendEachForMulticast({
           tokens: tokenList,
           notification: {
-            title: "⚠ Low Water Level",
-            body: "Water level is LOW"
+            title: "😳 Low Water Level",
+            body: `Water level is ${level}% - Please refill soon!`
           }
         });
 
