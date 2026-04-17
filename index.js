@@ -106,6 +106,7 @@ let lastData = {
 
 let hasCalled = false;
 let  lowAlertSent = false;
+let offlineAlertSent = false;
 
 // =======================
 // 🔔 TWILIO SETUP
@@ -275,6 +276,50 @@ app.get('/api/water-level/full-events', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch events' });
   }
 });
+
+
+
+////////////////////////////////
+// =======================
+// ⚠ OFFLINE MONITOR
+// =======================
+setInterval(async () => {
+  if (!lastData.timestamp) return;
+
+  const diff = (Date.now() - new Date(lastData.timestamp)) / 1000;
+
+  // 🔴 If no data for 60 seconds
+  if (diff > 60 && !offlineAlertSent) {
+
+    try {
+      const tokens = await FCMToken.find();
+      const tokenList = tokens.map(t => t.token);
+
+      if (tokenList.length > 0) {
+        await admin.messaging().sendEachForMulticast({
+          tokens: tokenList,
+          notification: {
+            title: "⚠ System Offline",
+            body: "Water monitoring system is not sending data"
+          }
+        });
+
+        console.log("⚠ Offline notification sent");
+      }
+
+      offlineAlertSent = true;
+
+    } catch (err) {
+      console.error("Offline alert error:", err);
+    }
+  }
+
+  // 🟢 Reset when data comes again
+  if (diff <= 60) {
+    offlineAlertSent = false;
+  }
+
+}, 30000); // runs every 30 sec
 // =======================
 app.listen(port, () => {
   console.log(`✅ Server running on port ${port}`);
