@@ -18,7 +18,7 @@ admin.initializeApp({
 // =======================
 // 🌍 MongoDB Connection (ENV)
 // =======================
-const mongoURI = process.env.MONGO_URI;
+const mongoURI = 'mongodb+srv://esp32user:yourStrongPassword123@cluster0.3v4lu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
 
 mongoose.connect(mongoURI)
   .then(() => console.log('✅ Connected to MongoDB'))
