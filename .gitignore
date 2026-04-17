@@ -1,1 +1,2 @@
-echo firebase-service-account.json >> .gitignore
+node_modules/
+firebase-service-account.json
