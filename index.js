@@ -3,23 +3,22 @@ import cors from 'cors';
 import mongoose from 'mongoose';
 import twilio from 'twilio';
 import admin from "firebase-admin";
-import fs from "fs";
 
+// =======================
+// 🔥 Firebase Init (ENV BASED)
+// =======================
 const serviceAccount = JSON.parse(
-  fs.readFileSync("./firebase-service-account.json", "utf-8")
+  process.env.FIREBASE_SERVICE_ACCOUNT
 );
 
-// =======================
-// 🔥 Firebase Init
-// =======================
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
 
 // =======================
-// 🌍 MongoDB Connection
+// 🌍 MongoDB Connection (ENV)
 // =======================
-const mongoURI = 'mongodb+srv://esp32user:yourStrongPassword123@cluster0.3v4lu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
+const mongoURI = process.env.MONGO_URI;
 
 mongoose.connect(mongoURI)
   .then(() => console.log('✅ Connected to MongoDB'))
@@ -159,12 +158,9 @@ app.post('/api/water-level', async (req, res) => {
 
   try {
 
-    // Save reading
     await new WaterLevel({ distance, level, timestamp }).save();
 
-    // =======================
     // 🚨 TANK FULL ALERT
-    // =======================
     if (tankFull && !hasCalled) {
 
       const tokens = await FCMToken.find();
@@ -181,7 +177,6 @@ app.post('/api/water-level', async (req, res) => {
         console.log("🔥 Tank full notification sent");
       }
 
-      // Twilio (unchanged)
       try {
         await client1.studio.v2.flows(flowSid1).executions.create({
           to: toNumber1,
@@ -205,13 +200,9 @@ app.post('/api/water-level', async (req, res) => {
       hasCalled = true;
     }
 
-    if (!tankFull) {
-      hasCalled = false;
-    }
+    if (!tankFull) hasCalled = false;
 
-    // =======================
     // ⚠ LOW LEVEL ALERT
-    // =======================
     const LOW_LEVEL = 20;
 
     if (level <= LOW_LEVEL && !lowAlertSent) {
@@ -234,9 +225,7 @@ app.post('/api/water-level', async (req, res) => {
       lowAlertSent = true;
     }
 
-    if (level > LOW_LEVEL) {
-      lowAlertSent = false;
-    }
+    if (level > LOW_LEVEL) lowAlertSent = false;
 
     res.json(lastData);
 
@@ -263,6 +252,7 @@ app.get('/api/water-level', (req, res) => {
   });
 });
 
+// =======================
 app.listen(port, () => {
   console.log(`✅ Server running on port ${port}`);
 });
