@@ -261,6 +261,21 @@ app.get('/api/water-level', (req, res) => {
 });
 
 // =======================
+// 📊 GET: Tank Full Events
+// =======================
+app.get('/api/water-level/full-events', async (req, res) => {
+  try {
+    const events = await TankFullEvent
+      .find()
+      .sort({ timestamp: -1 });
+
+    res.json(events);
+  } catch (err) {
+    console.error('❌ Full events fetch error:', err);
+    res.status(500).json({ error: 'Failed to fetch events' });
+  }
+});
+// =======================
 app.listen(port, () => {
   console.log(`✅ Server running on port ${port}`);
 });
