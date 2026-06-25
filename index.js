@@ -321,6 +321,33 @@ setInterval(async () => {
 
 }, 30000); // runs every 30 sec
 // =======================
+
+
+// =======================
+// 📈 GET: Water Level History
+// =======================
+app.get('/api/water-level/history', async (req, res) => {
+  try {
+
+    const days = parseInt(req.query.days) || 1;
+
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
+    const data = await WaterLevel.find({
+  timestamp: { $gte: startDate }
+})
+  .sort({ timestamp: 1 })
+  .select('timestamp level -_id')
+  .lean();
+
+    res.json(data);
+
+  } catch (err) {
+    console.error('❌ History fetch error:', err);
+    res.status(500).json({ error: 'Failed to fetch history' });
+  }
+});
 app.listen(port, () => {
   console.log(`✅ Server running on port ${port}`);
 });
