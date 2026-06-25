@@ -334,18 +334,32 @@ app.get('/api/water-level/history', async (req, res) => {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
-    const data = await WaterLevel.find({
-  timestamp: { $gte: startDate }
-})
-  .sort({ timestamp: 1 })
-  .select('timestamp level -_id')
-  .lean();
+    // Decide how many readings to skip
+    let skipEvery = 1;
 
-    res.json(data);
+    if (days === 1) {
+      skipEvery = 5;
+    } else if (days === 7) {
+      skipEvery = 40;
+    } else if (days === 15) {
+      skipEvery = 80;
+    }
+
+    const data = await WaterLevel.find({
+      timestamp: { $gte: startDate }
+    })
+      .sort({ timestamp: 1 })
+      .select('timestamp level -_id')
+      .lean();
+
+    // Keep only every Nth reading
+    const filteredData = data.filter((_, index) => index % skipEvery === 0);
+
+    res.json(filteredData);
 
   } catch (err) {
-    console.error('❌ History fetch error:', err);
-    res.status(500).json({ error: 'Failed to fetch history' });
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch history" });
   }
 });
 app.listen(port, () => {
